@@ -10,5 +10,7 @@ class SignUpView(CreateAPIView):
     permission_classes = [AllowAny]
 
     def create(self, request, *args, **kwargs):
-        super().create(request, *args, **kwargs)
-        return Response(status=status.HTTP_201_CREATED)
+        response = super().create(request, *args, **kwargs)
+        if response.status_code == status.HTTP_201_CREATED:
+            return Response(status=status.HTTP_201_CREATED)
+        return response
