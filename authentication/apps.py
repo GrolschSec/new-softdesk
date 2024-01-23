@@ -9,7 +9,7 @@ class AuthenticationConfig(AppConfig):
 
 
 @register
-def check_backend_settings(app_configs, **kwargs):
+def check_modelbackend_settings(app_configs, **kwargs):
     errors = []
     if (
         "authentication.backends.EmailModelBackend"
