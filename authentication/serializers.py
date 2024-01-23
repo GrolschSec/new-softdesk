@@ -1,6 +1,6 @@
-from django.contrib.auth import get_user_model
-from django.contrib.auth.password_validation import validate_password
-from rest_framework import serializers
+from django.contrib.auth import get_user_model, authenticate, password_validation
+from rest_framework import serializers, exceptions
+from rest_framework_simplejwt.tokens import RefreshToken
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -17,7 +17,7 @@ class UserSerializer(serializers.ModelSerializer):
         return value
 
     def validate_password(self, value):
-        validate_password(value)
+        password_validation.validate_password(value)
         return value
 
     def create(self, validated_data):
@@ -30,3 +30,17 @@ class UserSerializer(serializers.ModelSerializer):
         user.set_password(validated_data["password"])
         user.save()
         return user
+
+
+class LoginSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    password = serializers.CharField()
+
+    def validate(self, attrs):
+        user = authenticate(email=attrs["email"], password=attrs["password"])
+        if not user:
+            raise exceptions.AuthenticationFailed("Invalid email/password")
+        attrs["access"] = str(RefreshToken.for_user(user).access_token)
+        del attrs["email"]
+        del attrs["password"]
+        return attrs
