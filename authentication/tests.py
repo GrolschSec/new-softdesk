@@ -142,3 +142,53 @@ class TestSignUp(APITestCase):
             response.json(),
             {"password": ["This password must contain at least 1 special character."]},
         )
+
+
+class TestLogin(APITestCase):
+    def setUp(self):
+        self.signup_url = reverse("signup")
+        self.login_url = reverse("login")
+        self.first_name = "John"
+        self.last_name = "Doe"
+        self.email = "john-doe@gmail.com"
+        self.password = "pas1Mais2!"
+        self.client.post(
+            self.signup_url,
+            {
+                "first_name": self.first_name,
+                "last_name": self.last_name,
+                "email": self.email,
+                "password": self.password,
+            },
+        )
+
+    def test_login_successfull(self):
+        data = {"email": self.email, "password": self.password}
+        response = self.client.post(self.login_url, data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_login_invalid_email(self):
+        data = {"email": "john-doe", "password": self.password}
+        response = self.client.post(self.login_url, data)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.json(), {"email": ["Enter a valid email address."]})
+
+    def test_login_empty_email(self):
+        data = {"email": "", "password": self.password}
+        response = self.client.post(self.login_url, data)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.json(), {"email": ["This field may not be blank."]})
+
+    def test_login_empty_password(self):
+        data = {"email": self.email, "password": ""}
+        response = self.client.post(self.login_url, data)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            response.json(), {"password": ["This field may not be blank."]}
+        )
+
+    def test_login_invalid_credentials(self):
+        data = {"email": self.email, "password": "pas1Mais2"}
+        response = self.client.post(self.login_url, data)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertEqual(response.json(), {"detail": "Invalid email/password"})
