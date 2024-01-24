@@ -3,20 +3,22 @@ from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from rest_framework.exceptions import ValidationError
 from rest_framework.viewsets import ModelViewSet
+from rest_framework.permissions import IsAuthenticated
 from .serializers import (
     ProjectSerializer,
-    #ContributorSerializer,
+    # ContributorSerializer,
 )
-from .permissions import (
-    IsAuthorWriteOnly, 
-    IsAuthorContributorReadOnly
-)
+from .permissions import IsAuthorWriteOnly, IsAuthorContributorReadOnly
 from .models import Project, Contributor
 
 
 class ProjectViewset(ModelViewSet):
     serializer_class = ProjectSerializer
-    permission_classes = [IsAuthorWriteOnly, IsAuthorContributorReadOnly]
+    permission_classes = [
+        IsAuthenticated,
+        IsAuthorWriteOnly,
+        IsAuthorContributorReadOnly,
+    ]
     http_method_names = ["get", "post", "put", "delete"]
 
     def get_queryset(self):
@@ -33,10 +35,6 @@ class ProjectViewset(ModelViewSet):
 #     serializer_class = ContributorSerializer
 #     permission_classes = [IsAuthorWriteOnly, IsAuthorContributorReadOnly]
 #     http_method_names = ["get", "post", "delete"]
-
-
-
-    
 
 
 # class IssuesViewset(ModelViewSet):

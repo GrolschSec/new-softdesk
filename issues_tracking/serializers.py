@@ -1,7 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import serializers
-from .models import Project#, Contributor  # , Issue, Comment, 
+from .models import Project  # , Contributor  # , Issue, Comment,
 
 
 class ProjectSerializer(serializers.ModelSerializer):
@@ -11,12 +11,11 @@ class ProjectSerializer(serializers.ModelSerializer):
         read_only_fields = ["author_user_id"]
 
 
-
 # class ContributorSerializer(serializers.ModelSerializer):
 #     class Meta:
 #         model = Contributor
 #         fields = ["user", "project", "permission", "role"]
-    
+
 #     def create(self):
 #         project_id = self.context["view"].kwargs.get("project_id")
 #         project = Project.objects.get(id=project_id)
