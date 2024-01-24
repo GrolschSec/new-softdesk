@@ -26,13 +26,13 @@ class Project(models.Model):
 
 class Contributor(models.Model):
     PERMISSIONS = (("LOW", "Low"), ("MED", "Medium"), ("HIGH", "High"))
-    user_id = models.ForeignKey(get_user_model(), on_delete=models.CASCADE)
-    project_id = models.ForeignKey(Project, on_delete=models.CASCADE)
+    user = models.ForeignKey(get_user_model(), on_delete=models.CASCADE)
+    project = models.ForeignKey(Project, on_delete=models.CASCADE)
     permission = models.CharField(max_length=100, choices=PERMISSIONS)
     role = models.CharField(max_length=100)
 
     class Meta:
-        unique_together = ("project_id", "user_id")
+        unique_together = ("project", "user")
 
 
 class Issue(models.Model):
