@@ -4,11 +4,21 @@ from rest_framework import serializers
 from .models import Project  # , Contributor  # , Issue, Comment,
 
 
+class ProjectListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Project
+        fields = ["id", "title", "description"]
+
+
 class ProjectSerializer(serializers.ModelSerializer):
     class Meta:
         model = Project
         fields = ["id", "title", "description", "type", "author_user_id"]
         read_only_fields = ["author_user_id"]
+
+    def create(self, validated_data):
+        validated_data["author_user_id"] = self.context["request"].user
+        return super().create(validated_data)
 
 
 # class ContributorSerializer(serializers.ModelSerializer):

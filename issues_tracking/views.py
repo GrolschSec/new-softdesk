@@ -1,19 +1,14 @@
 from django.db.models import Q
-from django.contrib.auth import get_user_model
-from django.shortcuts import get_object_or_404
-from rest_framework.exceptions import ValidationError
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import IsAuthenticated
-from .serializers import (
-    ProjectSerializer,
-    # ContributorSerializer,
-)
 from .permissions import IsAuthorWriteOnly, IsAuthorContributorReadOnly
-from .models import Project, Contributor
+from .serializers import ProjectSerializer, ProjectListSerializer
+from .models import Project
 
 
 class ProjectViewset(ModelViewSet):
     serializer_class = ProjectSerializer
+    list_serializer_class = ProjectListSerializer
     permission_classes = [
         IsAuthenticated,
         IsAuthorWriteOnly,
@@ -27,8 +22,10 @@ class ProjectViewset(ModelViewSet):
             return Project.objects.filter(Q(author_user_id=user) | Q(contributors=user))
         return Project.objects.all()
 
-    def perform_create(self, serializer):
-        serializer.save(author_user_id=self.request.user)
+    def get_serializer_class(self):
+        if self.action == "list":
+            return self.list_serializer_class
+        return super().get_serializer_class()
 
 
 # class ContributorsViewset(ModelViewSet):
