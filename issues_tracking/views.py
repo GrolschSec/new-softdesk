@@ -4,8 +4,19 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import IsAuthenticated
-from .permissions import IsAuthorWriteOnly, IsAuthorContributorReadOnly
-from .serializers import ProjectSerializer, ProjectListSerializer, ContributorSerializer, ContributorListSerializer
+from .permissions import (
+    ProjectAuthorCreate,
+    ProjectAuthorUpdate,
+    ProjectAuthorDelete,
+    PAuthorContributorRetrieve,
+    PAuthorContributorList,
+)
+from .serializers import (
+    ProjectSerializer,
+    ProjectListSerializer,
+    ContributorSerializer,
+    ContributorListSerializer,
+)
 from .models import Project, Contributor
 
 
@@ -14,8 +25,9 @@ class ProjectViewset(ModelViewSet):
     list_serializer_class = ProjectListSerializer
     permission_classes = [
         IsAuthenticated,
-        IsAuthorWriteOnly,
-        IsAuthorContributorReadOnly,
+        ProjectAuthorUpdate,
+        ProjectAuthorDelete,
+        PAuthorContributorRetrieve,
     ]
     http_method_names = ["get", "post", "put", "delete"]
 
@@ -38,17 +50,23 @@ class ContributorsViewset(ModelViewSet):
     serializer_class = ContributorSerializer
     queryset = Contributor.objects.all()
     http_method_names = ["get", "post", "delete"]
+    permission_classes = [
+        IsAuthenticated,
+        ProjectAuthorCreate,
+        ProjectAuthorDelete,
+        PAuthorContributorList,
+    ]
 
     def get_queryset(self):
         return Contributor.objects.filter(
             project=self.kwargs.get("project_id")
         ).order_by("id")
-    
+
     def get_serializer_class(self):
         if self.action == "list":
             return self.list_serializer_class
         return super().get_serializer_class()
-    
+
     def get_object(self):
         if self.action == "destroy":
             return get_object_or_404(

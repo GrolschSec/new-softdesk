@@ -58,6 +58,7 @@ class ContributorListSerializer(serializers.ModelSerializer):
     def get_user_last_name(self, obj):
         return obj.user.last_name
 
+
 # class ContributorSerializer(serializers.ModelSerializer):
 #     class Meta:
 #         model = Contributor
