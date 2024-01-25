@@ -40,9 +40,23 @@ class ContributorSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         project_id = self.context["view"].kwargs.get("project_id")
-        validated_data["project_id"] = project_id
+        validated_data["project_id"] = int(project_id)
         return super().create(validated_data)
 
+
+class ContributorListSerializer(serializers.ModelSerializer):
+    user_first_name = serializers.SerializerMethodField()
+    user_last_name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Contributor
+        fields = ["user", "user_first_name", "user_last_name", "permission", "role"]
+
+    def get_user_first_name(self, obj):
+        return obj.user.first_name
+
+    def get_user_last_name(self, obj):
+        return obj.user.last_name
 
 # class ContributorSerializer(serializers.ModelSerializer):
 #     class Meta:

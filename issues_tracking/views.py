@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import IsAuthenticated
 from .permissions import IsAuthorWriteOnly, IsAuthorContributorReadOnly
-from .serializers import ProjectSerializer, ProjectListSerializer, ContributorSerializer
+from .serializers import ProjectSerializer, ProjectListSerializer, ContributorSerializer, ContributorListSerializer
 from .models import Project, Contributor
 
 
@@ -17,13 +17,15 @@ class ProjectViewset(ModelViewSet):
         IsAuthorWriteOnly,
         IsAuthorContributorReadOnly,
     ]
-    allowed_methods = ["GET", "POST", "PUT", "DELETE"]
+    http_method_names = ["get", "post", "put", "delete"]
 
     def get_queryset(self):
         if self.action == "list":
             user = self.request.user
-            return Project.objects.filter(Q(author_user_id=user) | Q(contributors=user))
-        return Project.objects.all()
+            return Project.objects.filter(
+                Q(author_user_id=user) | Q(contributors=user)
+            ).order_by("id")
+        return Project.objects.all().order_by("id")
 
     def get_serializer_class(self):
         if self.action == "list":
@@ -32,6 +34,7 @@ class ProjectViewset(ModelViewSet):
 
 
 class ContributorsViewset(ModelViewSet):
+    list_serializer_class = ContributorListSerializer
     serializer_class = ContributorSerializer
     queryset = Contributor.objects.all()
     http_method_names = ["get", "post", "delete"]
@@ -40,13 +43,19 @@ class ContributorsViewset(ModelViewSet):
         return Contributor.objects.filter(
             project=self.kwargs.get("project_id")
         ).order_by("id")
-
-    def destroy(self, request, *args, **kwargs):
-        contributor = self.get_queryset().filter(user=kwargs.get("pk"))
-        if not contributor.exists():
-            return Response(status=status.HTTP_404_NOT_FOUND)
-        contributor.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+    
+    def get_serializer_class(self):
+        if self.action == "list":
+            return self.list_serializer_class
+        return super().get_serializer_class()
+    
+    def get_object(self):
+        if self.action == "destroy":
+            return get_object_or_404(
+                self.get_queryset(),
+                user=self.kwargs.get("pk"),
+            )
+        return super().get_object()
 
 
 # class IssuesViewset(ModelViewSet):
