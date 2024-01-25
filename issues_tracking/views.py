@@ -5,11 +5,7 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import IsAuthenticated
 from .permissions import IsAuthorWriteOnly, IsAuthorContributorReadOnly
-from .serializers import (
-    ProjectSerializer, 
-    ProjectListSerializer, 
-    ContributorSerializer
-)
+from .serializers import ProjectSerializer, ProjectListSerializer, ContributorSerializer
 from .models import Project, Contributor
 
 
@@ -41,16 +37,18 @@ class ContributorsViewset(ModelViewSet):
     http_method_names = ["get", "post", "delete"]
 
     def get_queryset(self):
-        return Contributor.objects.filter(project=self.kwargs.get('project_id')).order_by('id')
-    
+        return Contributor.objects.filter(
+            project=self.kwargs.get("project_id")
+        ).order_by("id")
+
     def destroy(self, request, *args, **kwargs):
-        contributor = self.get_queryset().filter(user=kwargs.get('pk'))
+        contributor = self.get_queryset().filter(user=kwargs.get("pk"))
         if not contributor.exists():
             return Response(status=status.HTTP_404_NOT_FOUND)
         contributor.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
-    
-    
+
+
 # class IssuesViewset(ModelViewSet):
 #     serializer_class = IssueSerializer
 #     permission_classes = [IsContributorIssue]

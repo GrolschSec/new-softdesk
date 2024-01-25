@@ -20,25 +20,29 @@ class ProjectSerializer(serializers.ModelSerializer):
         validated_data["author_user_id"] = self.context["request"].user
         return super().create(validated_data)
 
+
 class ContributorSerializer(serializers.ModelSerializer):
     class Meta:
         model = Contributor
-        fields = ['user', 'project', 'permission', 'role']
-        read_only_fields = ['project']
+        fields = ["user", "project", "permission", "role"]
+        read_only_fields = ["project"]
 
     def validate(self, data):
-        project_id = self.context['view'].kwargs.get('project_id')
+        project_id = self.context["view"].kwargs.get("project_id")
         if not Project.objects.filter(id=project_id).exists():
             raise serializers.ValidationError("This project does not exist")
-        user_id = data['user'].id
+        user_id = data["user"].id
         if Contributor.objects.filter(project_id=project_id, user_id=user_id).exists():
-            raise serializers.ValidationError("This contributor already exists in this project")
+            raise serializers.ValidationError(
+                "This contributor already exists in this project"
+            )
         return data
 
     def create(self, validated_data):
-        project_id = self.context['view'].kwargs.get('project_id')
-        validated_data['project_id'] = project_id
+        project_id = self.context["view"].kwargs.get("project_id")
+        validated_data["project_id"] = project_id
         return super().create(validated_data)
+
 
 # class ContributorSerializer(serializers.ModelSerializer):
 #     class Meta:
