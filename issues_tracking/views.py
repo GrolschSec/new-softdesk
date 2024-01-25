@@ -1,7 +1,5 @@
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
-from rest_framework import status
-from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import IsAuthenticated
 from .permissions import (
@@ -16,8 +14,10 @@ from .serializers import (
     ProjectListSerializer,
     ContributorSerializer,
     ContributorListSerializer,
+    IssueSerializer,
+    CommentSerializer,
 )
-from .models import Project, Contributor
+from .models import Project, Contributor, Comment, Issue
 
 
 class ProjectViewset(ModelViewSet):
@@ -76,28 +76,28 @@ class ContributorsViewset(ModelViewSet):
         return super().get_object()
 
 
-# class IssuesViewset(ModelViewSet):
-#     serializer_class = IssueSerializer
-#     permission_classes = [IsContributorIssue]
-#     http_method_names = ["get", "post", "put", "delete"]
+class IssuesViewset(ModelViewSet):
+    serializer_class = IssueSerializer
+    permission_classes = [IsAuthenticated]
+    http_method_names = ["get", "post", "put", "delete"]
 
-#     def get_queryset(self):
-#         return Issue.objects.filter(project__id=self.kwargs.get("project_id"))
+    def get_queryset(self):
+        return Issue.objects.filter(project__id=self.kwargs.get("project_id"))
 
-#     def perform_create(self, serializer):
-#         project = Project.objects.get(id=self.kwargs.get("project_id"))
-#         serializer.save(author_user_id=self.request.user, project=project)
+    def perform_create(self, serializer):
+        project = Project.objects.get(id=self.kwargs.get("project_id"))
+        serializer.save(author_user_id=self.request.user, project=project)
 
 
-# class CommentsViewset(ModelViewSet):
-#     serializer_class = CommentSerializer
-#     permission_classes = [IsContributorComment]
-#     http_method_names = ["get", "post", "put", "delete"]
+class CommentsViewset(ModelViewSet):
+    serializer_class = CommentSerializer
+    permission_classes = [IsAuthenticated]
+    http_method_names = ["get", "post", "put", "delete"]
 
-#     def get_queryset(self):
-#         return Comment.objects.filter(issue=self.kwargs.get("issue_id"))
+    def get_queryset(self):
+        return Comment.objects.filter(issue=self.kwargs.get("issue_id"))
 
-#     def perform_create(self, serializer):
-#         get_object_or_404(Project, id=self.kwargs.get("project_id"))
-#         issue = get_object_or_404(Issue, id=self.kwargs.get("issue_id"))
-#         serializer.save(author_user_id=self.request.user, issue=issue)
+    def perform_create(self, serializer):
+        get_object_or_404(Project, id=self.kwargs.get("project_id"))
+        issue = get_object_or_404(Issue, id=self.kwargs.get("issue_id"))
+        serializer.save(author_user_id=self.request.user, issue=issue)
