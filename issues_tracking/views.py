@@ -1,9 +1,16 @@
 from django.db.models import Q
+from django.shortcuts import get_object_or_404
+from rest_framework import status
+from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import IsAuthenticated
 from .permissions import IsAuthorWriteOnly, IsAuthorContributorReadOnly
-from .serializers import ProjectSerializer, ProjectListSerializer
-from .models import Project
+from .serializers import (
+    ProjectSerializer, 
+    ProjectListSerializer, 
+    ContributorSerializer
+)
+from .models import Project, Contributor
 
 
 class ProjectViewset(ModelViewSet):
@@ -14,7 +21,7 @@ class ProjectViewset(ModelViewSet):
         IsAuthorWriteOnly,
         IsAuthorContributorReadOnly,
     ]
-    http_method_names = ["get", "post", "put", "delete"]
+    allowed_methods = ["GET", "POST", "PUT", "DELETE"]
 
     def get_queryset(self):
         if self.action == "list":
@@ -28,12 +35,22 @@ class ProjectViewset(ModelViewSet):
         return super().get_serializer_class()
 
 
-# class ContributorsViewset(ModelViewSet):
-#     serializer_class = ContributorSerializer
-#     permission_classes = [IsAuthorWriteOnly, IsAuthorContributorReadOnly]
-#     http_method_names = ["get", "post", "delete"]
+class ContributorsViewset(ModelViewSet):
+    serializer_class = ContributorSerializer
+    queryset = Contributor.objects.all()
+    http_method_names = ["get", "post", "delete"]
 
-
+    def get_queryset(self):
+        return Contributor.objects.filter(project=self.kwargs.get('project_id')).order_by('id')
+    
+    def destroy(self, request, *args, **kwargs):
+        contributor = self.get_queryset().filter(user=kwargs.get('pk'))
+        if not contributor.exists():
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        contributor.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+    
+    
 # class IssuesViewset(ModelViewSet):
 #     serializer_class = IssueSerializer
 #     permission_classes = [IsContributorIssue]
