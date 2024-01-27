@@ -26,7 +26,7 @@ class IsProjectContributor(BasePermission):
         return request.user in project.contributors.all()
 
 
-class PAuthorContributor(BasePermission):
+class IsPAuthorContributor(BasePermission):
     def has_permission(self, request, view):
         return IsProjectAuthor().has_permission(
             request, view
@@ -103,14 +103,14 @@ class ProjectContributorDelete(IsProjectContributor):
         return True
 
 
-class PAuthorContributorRetrieve(PAuthorContributor):
+class PAuthorContributorRetrieve(IsPAuthorContributor):
     def has_permission(self, request, view):
         if view.action == "retrieve":
             return super().has_permission(request, view)
         return True
 
 
-class PAuthorContributorList(PAuthorContributor):
+class PAuthorContributorList(IsPAuthorContributor):
     def has_permission(self, request, view):
         if view.action == "list":
             return super().has_permission(request, view)
