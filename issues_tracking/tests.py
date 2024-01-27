@@ -109,4 +109,6 @@ class ProjectTests(APITestCase):
         self.client.post(reverse("projects-list"), data=self.data, headers=self.header1)
         response = self.client.get(reverse("projects-list"), headers=self.header2)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.json(), [])
+        self.assertEqual(
+            response.json(), {"count": 0, "next": None, "previous": None, "results": []}
+        )
