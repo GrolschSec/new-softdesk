@@ -92,7 +92,7 @@ class IssuesViewset(ModelViewSet):
     http_method_names = ["get", "post", "put", "delete"]
 
     def retrieve(self, request, *args, **kwargs):
-        raise MethodNotAllowed('GET', detail='Retrieve operation is not allowed')
+        raise MethodNotAllowed("GET", detail="Retrieve operation is not allowed")
 
     def get_queryset(self):
         return Issue.objects.filter(project__id=self.kwargs.get("project_id"))
@@ -104,7 +104,14 @@ class IssuesViewset(ModelViewSet):
 
 class CommentsViewset(ModelViewSet):
     serializer_class = CommentSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [
+        IsAuthenticated,
+        PAuthorContributorCreate,
+        PAuthorContributorList,
+        PAuthorContributorRetrieve,
+        ObjectAuthorUpdate,
+        ObjectAuthorDelete,
+    ]
     http_method_names = ["get", "post", "put", "delete"]
 
     def get_queryset(self):
