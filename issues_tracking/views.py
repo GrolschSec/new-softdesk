@@ -2,12 +2,16 @@ from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.exceptions import MethodNotAllowed
 from .permissions import (
     ProjectAuthorCreate,
     ProjectAuthorUpdate,
     ProjectAuthorDelete,
     PAuthorContributorRetrieve,
+    PAuthorContributorCreate,
     PAuthorContributorList,
+    ObjectAuthorUpdate,
+    ObjectAuthorDelete,
 )
 from .serializers import (
     ProjectSerializer,
@@ -78,8 +82,17 @@ class ContributorsViewset(ModelViewSet):
 
 class IssuesViewset(ModelViewSet):
     serializer_class = IssueSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [
+        IsAuthenticated,
+        ObjectAuthorUpdate,
+        ObjectAuthorDelete,
+        PAuthorContributorList,
+        PAuthorContributorCreate,
+    ]
     http_method_names = ["get", "post", "put", "delete"]
+
+    def retrieve(self, request, *args, **kwargs):
+        raise MethodNotAllowed('GET', detail='Retrieve operation is not allowed')
 
     def get_queryset(self):
         return Issue.objects.filter(project__id=self.kwargs.get("project_id"))

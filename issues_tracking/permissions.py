@@ -33,6 +33,11 @@ class IsPAuthorContributor(BasePermission):
         ) or IsProjectContributor().has_permission(request, view)
 
 
+class IsObjectAuthor(BasePermission):
+    def has_object_permission(self, request, view, obj):
+        return request.user == obj.author_user_id
+
+
 class ProjectAuthorCreate(IsProjectAuthor):
     def has_permission(self, request, view):
         if view.action == "create":
@@ -114,4 +119,25 @@ class PAuthorContributorList(IsPAuthorContributor):
     def has_permission(self, request, view):
         if view.action == "list":
             return super().has_permission(request, view)
+        return True
+
+
+class PAuthorContributorCreate(IsPAuthorContributor):
+    def has_permission(self, request, view):
+        if view.action == "create":
+            return super().has_permission(request, view)
+        return True
+
+
+class ObjectAuthorUpdate(IsObjectAuthor):
+    def has_object_permission(self, request, view, obj):
+        if view.action == "update":
+            return super().has_object_permission(request, view, obj)
+        return True
+
+
+class ObjectAuthorDelete(IsObjectAuthor):
+    def has_object_permission(self, request, view, obj):
+        if view.action == "destroy":
+            return super().has_object_permission(request, view, obj)
         return True
