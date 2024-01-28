@@ -10,7 +10,7 @@ class IsProjectAuthor(BasePermission):
         try:
             project = Project.objects.get(pk=view.kwargs.get(field))
         except Project.DoesNotExist:
-            return False
+            return True
         return request.user == project.author_user_id
 
 
@@ -22,7 +22,7 @@ class IsProjectContributor(BasePermission):
         try:
             project = Project.objects.get(pk=view.kwargs.get(field))
         except Project.DoesNotExist:
-            return False
+            return True
         return request.user in project.contributors.all()
 
 

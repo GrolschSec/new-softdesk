@@ -112,3 +112,51 @@ class ProjectTests(APITestCase):
         self.assertEqual(
             response.json(), {"count": 0, "next": None, "previous": None, "results": []}
         )
+
+    def test_retrieve_project_successfull(self):
+        self.client.post(reverse("projects-list"), data=self.data, headers=self.header1)
+        response = self.client.get(reverse("projects-detail", args=[1]), headers=self.header1)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+    
+    def test_retrieve_project_from_another_user(self):
+        self.client.post(reverse("projects-list"), data=self.data, headers=self.header1)
+        response = self.client.get(reverse("projects-detail", args=[1]), headers=self.header2)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.json(), {'detail': 'You do not have permission to perform this action.'})
+    
+    def test_retrieve_project_does_not_exist(self):
+        response = self.client.get(reverse("projects-detail", args=[1]), headers=self.header1)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(response.json(), {'detail': 'Not found.'})
+    
+    def test_update_project_successfull(self):
+        self.client.post(reverse("projects-list"), data=self.data, headers=self.header1)
+        response = self.client.put(reverse("projects-detail", args=[1]), data=self.data, headers=self.header1)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_update_project_from_another_user(self):
+        self.client.post(reverse("projects-list"), data=self.data, headers=self.header1)
+        response = self.client.put(reverse("projects-detail", args=[1]), data=self.data, headers=self.header2)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.json(), {'detail': 'You do not have permission to perform this action.'})
+    
+    def test_update_project_does_not_exist(self):
+        response = self.client.put(reverse("projects-detail", args=[1]), data=self.data, headers=self.header1)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(response.json(), {'detail': 'Not found.'})
+    
+    def test_delete_project_successfull(self):
+        self.client.post(reverse("projects-list"), data=self.data, headers=self.header1)
+        response = self.client.delete(reverse("projects-detail", args=[1]), headers=self.header1)
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+    
+    def test_delete_project_from_another_user(self):
+        self.client.post(reverse("projects-list"), data=self.data, headers=self.header1)
+        response = self.client.delete(reverse("projects-detail", args=[1]), headers=self.header2)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.json(), {'detail': 'You do not have permission to perform this action.'})
+    
+    def test_delete_project_does_not_exist(self):
+        response = self.client.delete(reverse("projects-detail", args=[1]), headers=self.header1)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(response.json(), {'detail': 'Not found.'})
