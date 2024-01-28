@@ -4,7 +4,7 @@ from rest_framework import status
 from rest_framework.test import APITestCase
 
 
-class IssueTrackingTestCase(APITestCase):
+class IssuesTrackingTestCase(APITestCase):
     def setUp(self):
         self.user1_email = "test@test.com"
         self.user1_password = "testpassword"
@@ -32,7 +32,7 @@ class IssueTrackingTestCase(APITestCase):
         header = {"Authorization": f"Bearer {access}"}
         return header
 
-class ProjectTests(IssueTrackingTestCase):
+class ProjectTests(IssuesTrackingTestCase):
 
     def test_not_authenticated_create_project(self):
         response = self.client.post(
@@ -190,5 +190,5 @@ class ProjectTests(IssueTrackingTestCase):
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
         self.assertEqual(response.json(), {"detail": "Not found."})
 
-# class ContributorTests(IssueTrackingTestCase):
+# class ContributorTests(IssuesTrackingTestCase):
     
