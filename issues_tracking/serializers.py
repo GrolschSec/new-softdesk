@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from django.contrib.auth import get_user_model
 from .models import Project, Contributor, Issue, Comment
 
 
@@ -14,10 +15,6 @@ class ProjectSerializer(serializers.ModelSerializer):
         fields = ["id", "title", "description", "type", "author_user_id"]
         read_only_fields = ["author_user_id"]
 
-    def create(self, validated_data):
-        validated_data["author_user_id"] = self.context["request"].user
-        return super().create(validated_data)
-
 
 class ContributorSerializer(serializers.ModelSerializer):
     class Meta:
@@ -28,17 +25,13 @@ class ContributorSerializer(serializers.ModelSerializer):
     def validate(self, data):
         project_id = self.context["view"].kwargs.get("project_id")
         user_id = data["user"].id
+        if get_user_model().objects.filter(id=user_id).exists() is False:
+            raise serializers.ValidationError("This user does not exist")
         if Contributor.objects.filter(project_id=project_id, user_id=user_id).exists():
             raise serializers.ValidationError(
                 "This contributor already exists in this project"
             )
         return data
-
-    def create(self, validated_data):
-        validated_data["project_id"] = int(
-            self.context["view"].kwargs.get("project_id")
-        )
-        return super().create(validated_data)
 
 
 class ContributorListSerializer(serializers.ModelSerializer):
@@ -69,35 +62,9 @@ class IssueSerializer(serializers.ModelSerializer):
             "assignee_user_id",
         ]
 
-    def validate(self, data):
-        project_id = self.context["view"].kwargs.get("project_id")
-        if not Project.objects.filter(id=project_id).exists():
-            raise serializers.ValidationError("This project does not exist")
-        return data
-
-    def create(self, validated_data):
-        validated_data["author_user_id"] = self.context["request"].user
-        validated_data["project_id"] = self.context["view"].kwargs.get("project_id")
-        return super().create(validated_data)
-
 
 class CommentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Comment
         fields = ["id", "description", "issue"]
         read_only_fields = ["issue"]
-
-    def validate(self, data):
-        project_id = self.context["view"].kwargs.get("project_id")
-        if not Project.objects.filter(id=project_id).exists():
-            raise serializers.ValidationError("This project does not exist")
-        issue_id = self.context["view"].kwargs.get("issue_id")
-        if not Issue.objects.filter(id=issue_id).exists():
-            raise serializers.ValidationError("This issue does not exist")
-        return data
-
-    def create(self, validated_data):
-        validated_data["author_user_id"] = self.context["request"].user
-        validated_data["project_id"] = self.context["view"].kwargs.get("project_id")
-        validated_data["issue_id"] = self.context["view"].kwargs.get("issue_id")
-        return super().create(validated_data)

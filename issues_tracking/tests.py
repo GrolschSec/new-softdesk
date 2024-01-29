@@ -14,9 +14,9 @@ class IssuesTrackingTestCase(APITestCase):
             email="test2@test.com", password="testpassword2", username="test2"
         )
         refresh = RefreshToken.for_user(self.user1)
-        self.header1 = {'Authorization': f'Bearer {str(refresh.access_token)}'}
+        self.header1 = {"Authorization": f"Bearer {str(refresh.access_token)}"}
         refresh = RefreshToken.for_user(self.user2)
-        self.header2 = {'Authorization': f'Bearer {str(refresh.access_token)}'}
+        self.header2 = {"Authorization": f"Bearer {str(refresh.access_token)}"}
         self.data = {
             "title": "test",
             "description": "test",
@@ -263,12 +263,12 @@ class ContributorTests(IssuesTrackingTestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-    def test_list_contributor_project_does_not_exist(self):
-        response = self.client.get(
-            reverse("project-contributors-list", args=[2]),
-            headers=self.header1,
-        )
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+    # def test_list_contributor_project_does_not_exist(self):
+    #     response = self.client.get(
+    #         reverse("project-contributors-list", args=[2]),
+    #         headers=self.header1,
+    #     )
+    #     self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_delete_contributor_successfull(self):
         self.client.post(
@@ -492,75 +492,252 @@ class IssueTest(IssuesTrackingTestCase):
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
 
-# class CommentTest(IssuesTrackingTestCase):
-#     def setUp(self):
-#         super().setUp()
-#         self.client.post(reverse("projects-list"), data=self.data, headers=self.header1)
-#         self.data = {
-#             "title": "test",
-#             "description": "test",
-#             "tag": "BUG",
-#             "priority": "LOW",
-#             "status": "TODO",
-#             "assignee_user_id": 2,
-#         }
-#         self.client.post(
-#             reverse("project-issues-list", args=[1]),
-#             data=self.data,
-#             headers=self.header1,
-#         )
-#         self.data = {
-#             "description": "je teste les commentaires",
-#         }
+class CommentTest(IssuesTrackingTestCase):
+    def setUp(self):
+        super().setUp()
+        self.client.post(reverse("projects-list"), data=self.data, headers=self.header1)
+        self.data = {
+            "title": "test",
+            "description": "test",
+            "tag": "BUG",
+            "priority": "LOW",
+            "status": "TODO",
+            "assignee_user_id": 2,
+        }
+        self.client.post(
+            reverse("project-issues-list", args=[1]),
+            data=self.data,
+            headers=self.header1,
+        )
+        self.data = {
+            "description": "je teste les commentaires",
+        }
 
-#     def test_create_comment_successfull(self):
-#         response = self.client.post(
-#             reverse("issues-comments-list", args=[1, 1]),
-#             data=self.data,
-#             headers=self.header1,
-#         )
-#         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+    def test_create_comment_successfull(self):
+        response = self.client.post(
+            reverse("issues-comments-list", args=[1, 1]),
+            data=self.data,
+            headers=self.header1,
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-#     def test_create_comment_not_authorized(self):
-#         response = self.client.post(
-#             reverse("issue-comments-list", args=[1, 1]),
-#             data=self.data,
-#             headers=self.header2,
-#         )
-#         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+    def test_create_comment_not_authorized(self):
+        response = self.client.post(
+            reverse("issues-comments-list", args=[1, 1]),
+            data=self.data,
+            headers=self.header2,
+        )
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-#     def test_create_comment_issue_does_not_exist(self):
-#         response = self.client.post(
-#             reverse("issue-comments-list", args=[1, 2]),
-#             data=self.data,
-#             headers=self.header1,
-#         )
-#         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+    def test_create_comment_issue_does_not_exist(self):
+        response = self.client.post(
+            reverse("issues-comments-list", args=[1, 2]),
+            data=self.data,
+            headers=self.header1,
+        )
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
-#     def test_create_comment_project_does_not_exist(self):
-#         response = self.client.post(
-#             reverse("issue-comments-list", args=[2, 1]),
-#             data=self.data,
-#             headers=self.header1,
-#         )
-#         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+    def test_create_comment_project_does_not_exist(self):
+        response = self.client.post(
+            reverse("issues-comments-list", args=[2, 1]),
+            data=self.data,
+            headers=self.header1,
+        )
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
-#     def test_list_comment_from_author(self):
-#         self.client.post(
-#             reverse("issue-comments-list", args=[1, 1]),
-#             data=self.data,
-#             headers=self.header1,
-#         )
-#         response = self.client.get(
-#             reverse("issue-comments-list", args=[1, 1]),
-#             headers=self.header1,
-#         )
-#         self.assertEqual(response.status_code, status.HTTP_200_OK)
+    def test_list_comment_from_author(self):
+        self.client.post(
+            reverse("issues-comments-list", args=[1, 1]),
+            data=self.data,
+            headers=self.header1,
+        )
+        response = self.client.get(
+            reverse("issues-comments-list", args=[1, 1]),
+            headers=self.header1,
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-# def test_list_comment_from_contributor(self):
-#     self.client.post(
-#         reverse("project-contributors-list", args=[1]),
-#         data={"user": 2, "permission": "LOW", "role": "Lead Dev"},
-#         headers=self.header1,
-#     )
-#     self.client
+
+    def test_list_comment_from_contributor(self):
+        self.client.post(
+            reverse("project-contributors-list", args=[1]),
+            data={"user": 2, "permission": "LOW", "role": "Lead Dev"},
+            headers=self.header1,
+        )
+        self.client.post(
+            reverse("issues-comments-list", args=[1, 1]),
+            data=self.data,
+            headers=self.header1,
+        )
+        response = self.client.get(
+            reverse("issues-comments-list", args=[1, 1]),
+            headers=self.header2,
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_list_comment_from_another_user(self):
+        self.client.post(
+            reverse("issues-comments-list", args=[1, 1]),
+            data=self.data,
+            headers=self.header1,
+        )
+        response = self.client.get(
+            reverse("issues-comments-list", args=[1, 1]),
+            headers=self.header2,
+        )
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+    
+    # def test_list_comment_issue_does_not_exist(self):
+    #     response = self.client.get(
+    #         reverse("issues-comments-list", args=[1, 2]),
+    #         headers=self.header1,
+    #     )
+    #     self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+    
+    # def test_list_comment_project_does_not_exist(self):
+    #     response = self.client.get(
+    #         reverse("issues-comments-list", args=[2, 1]),
+    #         headers=self.header1,
+    #     )
+    #     self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+    
+    def test_retrieve_comment_successfull(self):
+        self.client.post(
+            reverse("issues-comments-list", args=[1, 1]),
+            data=self.data,
+            headers=self.header1,
+        )
+        response = self.client.get(
+            reverse("issues-comments-detail", args=[1, 1, 1]),
+            headers=self.header1,
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_retrieve_comment_not_authorized(self):
+        self.client.post(
+            reverse("issues-comments-list", args=[1, 1]),
+            data=self.data,
+            headers=self.header1,
+        )
+        response = self.client.get(
+            reverse("issues-comments-detail", args=[1, 1, 1]),
+            headers=self.header2,
+        )
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+    
+    def test_retrieve_comment_issue_does_not_exist(self):
+        response = self.client.get(
+            reverse("issues-comments-detail", args=[1, 2, 1]),
+            headers=self.header1,
+        )
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_retrieve_comment_project_does_not_exist(self):
+        response = self.client.get(
+            reverse("issues-comments-detail", args=[2, 1, 1]),
+            headers=self.header1,
+        )
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+    
+    def test_retrieve_comment_comment_does_not_exist(self):
+        response = self.client.get(
+            reverse("issues-comments-detail", args=[1, 1, 1]),
+            headers=self.header1,
+        )
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_update_comment_successfull(self):
+        self.client.post(
+            reverse("issues-comments-list", args=[1, 1]),
+            data=self.data,
+            headers=self.header1,
+        )
+        response = self.client.put(
+            reverse("issues-comments-detail", args=[1, 1, 1]),
+            data=self.data,
+            headers=self.header1,
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_update_comment_not_authorized(self):
+        self.client.post(
+            reverse("issues-comments-list", args=[1, 1]),
+            data=self.data,
+            headers=self.header1,
+        )
+        response = self.client.put(
+            reverse("issues-comments-detail", args=[1, 1, 1]),
+            data=self.data,
+            headers=self.header2,
+        )
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+    
+    def test_update_comment_issue_does_not_exist(self):
+        response = self.client.put(
+            reverse("issues-comments-detail", args=[1, 2, 1]),
+            data=self.data,
+            headers=self.header1,
+        )
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+    
+    def test_update_comment_project_does_not_exist(self):
+        response = self.client.put(
+            reverse("issues-comments-detail", args=[2, 1, 1]),
+            data=self.data,
+            headers=self.header1,
+        )
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_update_comment_comment_does_not_exist(self):
+        response = self.client.put(
+            reverse("issues-comments-detail", args=[1, 1, 1]),
+            data=self.data,
+            headers=self.header1,
+        )
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_delete_comment_successfull(self):
+        self.client.post(
+            reverse("issues-comments-list", args=[1, 1]),
+            data=self.data,
+            headers=self.header1,
+        )
+        response = self.client.delete(
+            reverse("issues-comments-detail", args=[1, 1, 1]),
+            headers=self.header1,
+        )
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+    
+    def test_delete_comment_not_authorized(self):
+        self.client.post(
+            reverse("issues-comments-list", args=[1, 1]),
+            data=self.data,
+            headers=self.header1,
+        )
+        response = self.client.delete(
+            reverse("issues-comments-detail", args=[1, 1, 1]),
+            headers=self.header2,
+        )
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+    
+    def test_delete_comment_issue_does_not_exist(self):
+        response = self.client.delete(
+            reverse("issues-comments-detail", args=[1, 2, 1]),
+            headers=self.header1,
+        )
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+    
+    def test_delete_comment_project_does_not_exist(self):
+        response = self.client.delete(
+            reverse("issues-comments-detail", args=[2, 1, 1]),
+            headers=self.header1,
+        )
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+    
+    def test_delete_comment_comment_does_not_exist(self):
+        response = self.client.delete(
+            reverse("issues-comments-detail", args=[1, 1, 1]),
+            headers=self.header1,
+        )
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+    

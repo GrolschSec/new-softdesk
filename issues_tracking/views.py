@@ -48,6 +48,9 @@ class ProjectViewset(ModelViewSet):
             return self.list_serializer_class
         return super().get_serializer_class()
 
+    def perform_create(self, serializer):
+        serializer.save(author_user_id=self.request.user)
+
 
 class ContributorsViewset(ModelViewSet):
     list_serializer_class = ContributorListSerializer
@@ -60,10 +63,6 @@ class ContributorsViewset(ModelViewSet):
         PAuthorContributorList,
         ProjectAuthorDelete,
     ]
-
-    def initial(self, request, *args, **kwargs):
-        super().initial(request, *args, **kwargs)
-        get_object_or_404(Project, id=self.kwargs.get("project_id"))
 
     def retrieve(self, request, *args, **kwargs):
         raise MethodNotAllowed("GET", detail="Retrieve operation is not allowed")
@@ -86,6 +85,10 @@ class ContributorsViewset(ModelViewSet):
             )
         return super().get_object()
 
+    def perform_create(self, serializer):
+        project = get_object_or_404(Project, id=self.kwargs.get("project_id"))
+        serializer.save(project=project)
+
 
 class IssuesViewset(ModelViewSet):
     serializer_class = IssueSerializer
@@ -98,19 +101,17 @@ class IssuesViewset(ModelViewSet):
     ]
     http_method_names = ["get", "post", "put", "delete"]
 
-    def initial(self, request, *args, **kwargs):
-        super().initial(request, *args, **kwargs)
-        get_object_or_404(Project, id=self.kwargs.get("project_id"))
-
     def retrieve(self, request, *args, **kwargs):
         raise MethodNotAllowed("GET", detail="Retrieve operation is not allowed")
 
     def get_queryset(self):
-        return Issue.objects.filter(project_id=self.kwargs.get("project_id"))
+        return Issue.objects.filter(project_id=self.kwargs.get("project_id")).order_by(
+            "id"
+        )
 
-    # def perform_create(self, serializer):
-    #     project = Project.objects.get(id=self.kwargs.get("project_id"))
-    #     serializer.save(author_user_id=self.request.user, project=project)
+    def perform_create(self, serializer):
+        project = get_object_or_404(Project, id=self.kwargs.get("project_id"))
+        serializer.save(author_user_id=self.request.user, project=project)
 
 
 class CommentsViewset(ModelViewSet):
@@ -125,15 +126,12 @@ class CommentsViewset(ModelViewSet):
     ]
     http_method_names = ["get", "post", "put", "delete"]
 
-    def initial(self, request, *args, **kwargs):
-        super().initial(request, *args, **kwargs)
-        get_object_or_404(Project, id=self.kwargs.get("project_id"))
-        get_object_or_404(Issue, id=self.kwargs.get("issue_id"))
-
     def get_queryset(self):
-        return Comment.objects.filter(issue=self.kwargs.get("issue_id"))
+        return Comment.objects.filter(issue=self.kwargs.get("issue_id")).order_by("id")
 
-    # def perform_create(self, serializer):
-    #     get_object_or_404(Project, id=self.kwargs.get("project_id"))
-    #     issue = get_object_or_404(Issue, id=self.kwargs.get("issue_id"))
-    #     serializer.save(author_user_id=self.request.user, issue=issue)
+    def perform_create(self, serializer):
+        project = get_object_or_404(Project, id=self.kwargs.get("project_id"))
+        issue = get_object_or_404(
+            Issue, id=self.kwargs.get("issue_id"), project=project
+        )
+        serializer.save(author_user_id=self.request.user, issue=issue)
