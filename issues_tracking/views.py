@@ -61,6 +61,9 @@ class ContributorsViewset(ModelViewSet):
         PAuthorContributorList,
     ]
 
+    def retrieve(self, request, *args, **kwargs):
+        raise MethodNotAllowed("GET", detail="Retrieve operation is not allowed")
+
     def get_queryset(self):
         return Contributor.objects.filter(
             project=self.kwargs.get("project_id")
