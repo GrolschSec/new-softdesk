@@ -245,7 +245,7 @@ class ContributorTests(IssuesTrackingTestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-    def test_list_from_contributor(self):
+    def test_list_contributor_from_contributor(self):
         self.client.post(
             reverse("project-contributors-list", args=[1]),
             data={"user": 2, "permission": "LOW", "role": "Lead Dev"},
@@ -257,7 +257,7 @@ class ContributorTests(IssuesTrackingTestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-    def test_list_from_another_user(self):
+    def test_list_contributor_from_another_user(self):
         response = self.client.get(
             reverse("project-contributors-list", args=[1]),
             headers=self.header2,
@@ -275,7 +275,7 @@ class ContributorTests(IssuesTrackingTestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
     
-    def test_delete_from_another_user(self):
+    def test_delete_contributor_from_another_user(self):
         self.client.post(
             reverse("project-contributors-list", args=[1]),
             data={"user": 2, "permission": "LOW", "role": "Lead Dev"},
@@ -286,3 +286,14 @@ class ContributorTests(IssuesTrackingTestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
+    def test_retrieve_contributor_author(self):
+        self.client.post(
+            reverse("project-contributors-list", args=[1]),
+            data={"user": 2, "permission": "LOW", "role": "Lead Dev"},
+            headers=self.header1,
+        )
+        response = self.client.get(reverse("project-contributors-detail", args=[1, 2]),
+            headers=self.header1
+        )
+        self.assertEqual(response.json(), {'detail': 'Retrieve operation is not allowed'})
+        self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
