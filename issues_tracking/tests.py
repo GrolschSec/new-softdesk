@@ -239,7 +239,7 @@ class ContributorTests(IssuesTrackingTestCase):
             data={"user": 2, "permission": "LOW", "role": "Lead Dev"},
             headers=self.header1,
         )
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_list_contributor_from_author(self):
         self.client.post(
@@ -271,6 +271,13 @@ class ContributorTests(IssuesTrackingTestCase):
             headers=self.header2,
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+    
+    def test_list_contributor_project_does_not_exist(self):
+        response = self.client.get(
+            reverse("project-contributors-list", args=[2]),
+            headers=self.header1,
+        )
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_delete_contributor_successfull(self):
         self.client.post(
@@ -278,21 +285,33 @@ class ContributorTests(IssuesTrackingTestCase):
             data={"user": 2, "permission": "LOW", "role": "Lead Dev"},
             headers=self.header1,
         )
-        response = self.client.delete(reverse("project-contributors-detail", args=[1, 2]),
-            headers=self.header1
+        response = self.client.delete(
+            reverse("project-contributors-detail", args=[1, 2]), headers=self.header1
         )
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-    
+
     def test_delete_contributor_from_another_user(self):
         self.client.post(
             reverse("project-contributors-list", args=[1]),
             data={"user": 2, "permission": "LOW", "role": "Lead Dev"},
             headers=self.header1,
         )
-        response = self.client.delete(reverse("project-contributors-detail", args=[1, 2]),
-            headers=self.header2
+        response = self.client.delete(
+            reverse("project-contributors-detail", args=[1, 2]), headers=self.header2
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_delete_contributor_project_does_not_exist(self):
+        response = self.client.delete(
+            reverse("project-contributors-detail", args=[2, 2]), headers=self.header1
+        )
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+    
+    def test_delete_contributor_contributor_does_not_exist(self):
+        response = self.client.delete(
+            reverse("project-contributors-detail", args=[1, 2]), headers=self.header1
+        )
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_retrieve_contributor_author(self):
         self.client.post(
@@ -300,8 +319,10 @@ class ContributorTests(IssuesTrackingTestCase):
             data={"user": 2, "permission": "LOW", "role": "Lead Dev"},
             headers=self.header1,
         )
-        response = self.client.get(reverse("project-contributors-detail", args=[1, 2]),
-            headers=self.header1
+        response = self.client.get(
+            reverse("project-contributors-detail", args=[1, 2]), headers=self.header1
         )
-        self.assertEqual(response.json(), {'detail': 'Retrieve operation is not allowed'})
+        self.assertEqual(
+            response.json(), {"detail": "Retrieve operation is not allowed"}
+        )
         self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
