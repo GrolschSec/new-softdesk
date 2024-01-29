@@ -233,6 +233,14 @@ class ContributorTests(IssuesTrackingTestCase):
             {"detail": "You do not have permission to perform this action."},
         )
 
+    def test_add_contributor_project_does_not_exist(self):
+        response = self.client.post(
+            reverse("project-contributors-list", args=[2]),
+            data={"user": 2, "permission": "LOW", "role": "Lead Dev"},
+            headers=self.header1,
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
     def test_list_contributor_from_author(self):
         self.client.post(
             reverse("project-contributors-list", args=[1]),
