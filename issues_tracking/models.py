@@ -81,7 +81,7 @@ class Issue(models.Model):
 
 
 class Comment(models.Model):
-    description = models.TextField()
+    description = models.CharField(max_length=1000)
     author_user_id = models.ForeignKey(
         get_user_model(),
         on_delete=models.CASCADE,
